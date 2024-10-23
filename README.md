@@ -42,7 +42,7 @@ This project is a 3-tier Rule Engine application that determines user eligibilit
 1. **Clone the Repository**: Clone this repository to your local machine.
 
     ```bash
-    git clone https://github.com/suryasolurgm/rule-engine-ast.git
+    git clone [git@github.com:suryasolurgm/RuleEngine.git](https://github.com/suryasolurgm/RuleEngine.git)
     cd rule-engine-ast
     ```
 
@@ -80,3 +80,13 @@ This project is a 3-tier Rule Engine application that determines user eligibilit
 ## Sample Rules
 
 1. **Rule 1**:
+    ((age > 30 AND department = 'Sales') OR (age < 25 AND department = 'Marketing')) AND (salary > 50000 OR experience > 5)
+2. **Rule 2**:
+    (age > 30 AND department = 'Marketing') AND (salary > 20000 OR experience > 5)
+
+## Running Tests
+
+To run the tests, use the following command:
+
+```bash
+mvn test
