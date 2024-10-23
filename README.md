@@ -1,123 +1,82 @@
-Rule Engine with Abstract Syntax Tree (AST)
-A Java-based rule engine application that uses Abstract Syntax Trees to evaluate complex conditional rules for user eligibility based on various attributes.
-Overview
-This project implements a 3-tier rule engine application that consists of:
+# Rule Engine with AST
 
-Simple UI for rule management
-REST API for rule operations
-Backend processing with AST implementation
-MySQL database for rule storage
+This project is a 3-tier Rule Engine application that determines user eligibility based on attributes like age, department, income, spend, etc. It uses an Abstract Syntax Tree (AST) to represent and evaluate dynamic conditional rules.
 
-Features
+## Prerequisites
 
-Create and store complex conditional rules using AST
-Combine multiple rules into a single optimized AST
-Evaluate user data against stored rules
-Dynamic rule modification and management
-Support for various attributes (age, department, income, etc.)
+- Java Development Kit (JDK) 17 or higher
+- Maven
+- MySQL
 
-Technical Architecture
-Data Structure
-The AST is represented using a Node class:
-javaCopypublic class Node {
-    private String type;      // "operator" or "operand"
-    private Node left;        // Left child node
-    private Node right;       // Right child node
-    private String value;     // Value for operand nodes
-    
-    // Constructors, getters, and setters
-}
-Database Schema
-sqlCopyCREATE TABLE rules (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    rule_name VARCHAR(255) NOT NULL,
-    ast_json JSON NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB;
-Core API Endpoints
+## Setting Up the Database
 
-POST /api/rules/create
+1. **Install MySQL**: If you don't have MySQL installed, download and install it from [MySQL Downloads](https://dev.mysql.com/downloads/).
 
-Creates a new rule from a rule string
-Returns the AST representation
+2. **Create Database**: Open MySQL command line or a MySQL client and run the following commands to create a new database:
 
+    ```sql
+    CREATE DATABASE rule_engine;
+    ```
 
-POST /api/rules/combine
+3. **Create User**: Create a new MySQL user and grant privileges to the database:
 
-Combines multiple rules into a single optimized AST
-Minimizes redundant checks
+    ```sql
+    CREATE USER 'rule_user'@'localhost' IDENTIFIED BY 'password';
+    GRANT ALL PRIVILEGES ON rule_engine.* TO 'rule_user'@'localhost';
+    FLUSH PRIVILEGES;
+    ```
 
+4. **Create Table**: Use the following schema to create the `rules` table in the database:
 
-POST /api/rules/evaluate
+    ```sql
+    CREATE TABLE rules (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        rule_name VARCHAR(255) NOT NULL,
+        ast_json JSON NOT NULL,
+        PRIMARY KEY (id)
+    ) ENGINE=InnoDB;
+    ```
 
-Evaluates user data against a rule AST
-Returns eligibility result
+## Configuring the Backend
 
+1. **Clone the Repository**: Clone this repository to your local machine.
 
+    ```bash
+    git clone https://github.com/suryasolurgm/rule-engine-ast.git
+    cd rule-engine-ast
+    ```
 
-Sample Rules
-CopyRule 1: "((age > 30 AND department = 'Sales') OR 
-         (age < 25 AND department = 'Marketing')) AND 
-         (salary > 50000 OR experience > 5)"
+2. **Configure Application Properties**: Open `src/main/resources/application.properties` and update the MySQL database connection details:
 
-Rule 2: "((age > 30 AND department = 'Marketing')) AND 
-         (salary > 20000 OR experience > 5)"
-Prerequisites
+    ```properties
+    spring.datasource.url=jdbc:mysql://localhost:3306/rule_engine
+    spring.datasource.username=rule_user
+    spring.datasource.password=password
+    spring.jpa.hibernate.ddl-auto=update
+    ```
 
-Java 17
-Spring Boot
-Maven
-MySQL
+## Running the Backend
 
-Installation
+1. **Build the Project**: Use Maven to build the project.
 
-Clone the repository:
+    ```bash
+    mvn clean install
+    ```
 
-bashCopygit clone https://github.com/suryasolurgm/rule-engine-ast.git
+2. **Run the Application**: Start the Spring Boot application.
 
-Navigate to project directory:
+    ```bash
+    mvn spring-boot:run
+    ```
 
-bashCopycd rule-engine-ast
+    The backend will be running at `http://localhost:8080`.
 
-Configure database connection in application.properties:
+## API Endpoints
 
-propertiesCopyspring.datasource.url=jdbc:mysql://localhost:3306/rule_engine
-spring.datasource.username=root
-spring.datasource.password=yourpassword
-spring.jpa.hibernate.ddl-auto=update
-Running the Application
+- **POST /api/rules/create**: Create a new rule and store its AST representation.
+- **POST /api/rules/combine**: Combine multiple rules into a single AST.
+- **POST /api/rules/evaluate**: Evaluate a rule against the provided user data.
 
-Build the project:
+## Sample Rules
 
-bashCopymvn clean install
-
-Start the application:
-
-bashCopymvn spring-boot:run
-Testing
-Run the test suite:
-bashCopymvn test
-Test Cases Include:
-
-Individual rule creation and AST validation
-Rule combination and optimization
-Rule evaluation with sample data
-Error handling and edge cases
-
-Advanced Features
-Error Handling
-
-Validation for rule syntax
-Data format verification
-Proper error messages and status codes
-
-Attribute Validation
-
-Catalog-based attribute verification
-Type checking and validation
-
-Rule Modification
-
-Update existing rules
-Modify operators and operands
-Add/remove sub-expressions
+1. **Rule 1**:
