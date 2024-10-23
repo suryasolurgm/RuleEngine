@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rule Engine Management</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #444;
+      margin-bottom: 15px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #45a049;
+    }
+
+    .btn-secondary {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #1976D2;
+    }
+
+    .rule-list {
+      list-style: none;
+    }
+
+    .rule-item {
+      padding: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .error {
+      background-color: #ffebee;
+      color: #c62828;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Rule Engine Management</h1>
+
+  <div id="error" class="error"></div>
+  <div id="success" class="success"></div>
+
+  <!-- Create Rule Section -->
+  <div class="card">
+    <h2>Create New Rule</h2>
+    <div class="input-group">
+      <textarea id="ruleInput" rows="3" placeholder="Enter rule string (e.g., age > 30 AND department = 'Sales')"></textarea>
+    </div>
+    <button id="createRule" class="btn btn-primary">Create Rule</button>
+  </div>
+
+  <!-- Rules List Section -->
+  <div class="card">
+    <h2>Existing Rules</h2>
+    <div id="rulesList" class="rule-list"></div>
+    <button id="combineRules" class="btn btn-secondary" style="margin-top: 10px;">Combine Selected Rules</button>
+  </div>
+
+  <!-- Test Data Section -->
+  <div class="card">
+    <h2>Test Data</h2>
+    <div class="grid">
+      <div class="input-group">
+        <label for="ageInput">Age</label>
+        <input type="number" id="ageInput" value="30">
+      </div>
+      <div class="input-group">
+        <label for="departmentInput">Department</label>
+        <select id="departmentInput">
+          <option value="Sales">Sales</option>
+          <option value="Marketing">Marketing</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label for="salaryInput">Salary</label>
+        <input type="number" id="salaryInput" value="50000">
+      </div>
+      <div class="input-group">
+        <label for="experienceInput">Experience</label>
+        <input type="number" id="experienceInput" value="5">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  class RuleEngine {
+    constructor() {
+      this.rules = [];
+      this.initializeEventListeners();
+    }
+
+    initializeEventListeners() {
+      document.getElementById('createRule').addEventListener('click', () => this.createRule());
+      document.getElementById('combineRules').addEventListener('click', () => this.combineSelectedRules());
+    }
+
+    showError(message) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    showSuccess(message) {
+      const successDiv = document.getElementById('success');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    async createRule() {
+      const ruleString = document.getElementById('ruleInput').value.trim();
+      if (!ruleString) {
+        this.showError('Please enter a rule string');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/rules/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          // Change this line to send an object instead of just the string
+          body: JSON.stringify({ ruleString: ruleString })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(errorData || 'Failed to create rule');
+        }
+
+        const rule = await response.json();
+        this.rules.push(rule);
+        this.updateRulesList();
+        document.getElementById('ruleInput').value = '';
+        this.showSuccess('Rule created successfully');
+      } catch (error) {
+        this.showError(error.message);
+      }
+    }
+
+    async evaluateRule(ruleId) {
+      const testData = {
+        age: parseInt(document.getElementById('ageInput').value),
+        department: document.getElementById('departmentInput').value,
+        salary: parseInt(document.getElementById('salaryInput').value),
+        experience: parseInt(document.getElementById('experienceInput').value)
+      };
+
+      try {
+        const response = await fetch(`/api/rules/evaluate/${ruleId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(testData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to evaluate rule');
+        }
+
+        const result = await response.json();
+        this.showSuccess(`Rule evaluation result: ${result ? 'Passed' : 'Failed'}`);
+      } catch (error) {
+        this.showError(error.message);
+      }
+    }
+
+    async combineSelectedRules() {
+      const selectedRules = Array.from(document.querySelectorAll('.rule-checkbox:checked'))
+              .map(checkbox => parseInt(checkbox.value));
+
+      if (selectedRules.length < 2) {
+        this.showError('Please select at least two rules to combine');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/rules/combine', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(selectedRules)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to combine rules');
+        }
+
+        const combinedRule = await response.json();
+        this.rules.push(combinedRule);
+        this.updateRulesList();
+        this.showSuccess('Rules combined successfully');
+      } catch (error) {
+        this.showError(error.message);
+      }
+    }
+
+    updateRulesList() {
+      const rulesListElement = document.getElementById('rulesList');
+      rulesListElement.innerHTML = '';
+
+      this.rules.forEach(rule => {
+        const ruleElement = document.createElement('div');
+        ruleElement.className = 'rule-item';
+        ruleElement.innerHTML = `
+                        <input type="checkbox" class="rule-checkbox" value="${rule.id}">
+                        <span>${rule.ruleString}</span>
+                        <button class="btn btn-primary" onclick="ruleEngine.evaluateRule(${rule.id})">Evaluate</button>
+                    `;
+        rulesListElement.appendChild(ruleElement);
+      });
+    }
+  }
+
+  // Initialize the rule engine
+  const ruleEngine = new RuleEngine();
+
+  // Load initial rules
+  fetch('/api/rules')
+          .then(response => response.json())
+          .then(rules => {
+            ruleEngine.rules = rules;
+            ruleEngine.updateRulesList();
+          })
+          .catch(error => ruleEngine.showError('Failed to load rules'));
+</script>
+</body>
+</html>
